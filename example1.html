@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能纱线识色分析报告</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #005a9e;
+            --secondary-color: #3498db;
+            --text-color: #333;
+            --light-text-color: #666;
+            --border-color: #e0e6ed;
+            --background-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --success-color: #27ae60;
+            --error-color: #c0392b;
+            --font-family: 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: var(--card-bg-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0, 90, 158, 0.12);
+            padding: 40px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .header-title p {
+            font-size: 16px;
+            color: var(--light-text-color);
+            margin: 5px 0 0;
+        }
+        .header-info {
+            text-align: right;
+            font-size: 14px;
+            color: var(--light-text-color);
+            white-space: nowrap;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: #fbfdff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .info-item .label {
+            font-size: 14px;
+            color: var(--light-text-color);
+            margin-bottom: 5px;
+            display: block;
+        }
+        .info-item .value-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+            padding: 8px 2px;
+            display: block;
+        }
+        .value-input {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+            display: none;
+        }
+        .value-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        .main-result {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: stretch;
+        }
+        .yarn-image-container {
+            position: relative;
+        }
+        
+        .yarn-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- COLOR CARD OVERLAY STYLES --- */
+        .color-card-overlay {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+        }
+
+        .color-card-frame {
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+            border: 2px solid var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .color-card-image {
+            width: 6%;
+            height: 6%;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .color-card-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: rgba(0, 90, 158, 0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid var(--primary-color);
+        }
+        .overview-card {
+            background-color: #fbfdff;
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .overview-card .section-title-small {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+        }
+        .overview-item .label {
+            font-size: 14px;
+            color: var(--light-text-color);
+            margin-bottom: 8px;
+        }
+        .overview-item .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .overview-item .status-pass {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .overview-item .status-fail {
+            background-color: rgba(192, 57, 43, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+        .section { margin-bottom: 40px; }
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 22px;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        .section-title span { letter-spacing: 0.5px; }
+        .edit-icon {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            color: var(--secondary-color);
+            transition: color 0.3s ease;
+        }
+        .edit-icon:hover { color: var(--primary-color); }
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .analysis-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        .analysis-card.full-width { grid-column: 1 / -1; }
+        .analysis-card.wide { grid-column: span 2; }
+        .analysis-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .analysis-card h3 svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .analysis-card p, .analysis-card ul {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--light-text-color);
+        }
+        .analysis-card .description { margin-bottom: 20px; }
+        .analysis-card strong { color: var(--text-color); font-weight: 500; }
+        .texture-image-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .texture-image-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 15px; }
+        .data-table th { font-weight: 500; color: var(--light-text-color); }
+        .data-table td { font-weight: 400; color: var(--text-color); }
+        .data-table tr:last-child th, .data-table tr:last-child td { border-bottom: none; }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 12px; color: #999; }
+
+        /* --- STYLES FOR EXPLANATION TOOLTIP --- */
+        .explainable {
+            position: relative;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+        .explanation-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .description .explainable {
+            margin-left: 8px;
+        }
+
+        .description .explanation-icon {
+            width: 14px;
+            height: 14px;
+            font-size: 10px;
+            margin-left: 3px;
+        }
+        .explainable:hover .explanation-icon {
+            background-color: var(--primary-color);
+        }
+        .explanation-box {
+            display: none; /* Initially hidden */
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            background-color: #fff;
+            color: var(--text-color);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 14px;
+            line-height: 1.6;
+            z-index: 100;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+        .explanation-box::after { /* Arrow */
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+        .explanation-box.visible {
+            display: block; /* Show on click */
+        }
+        .explanation-box strong {
+            color: var(--primary-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--light-text-color);
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .modal-chart-container {
+            width: 800px;
+            height: 500px;
+            margin: 0 auto;
+        }
+
+        .clickable-chart {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .clickable-chart:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0, 90, 158, 0.15);
+        }
+
+        /* --- MATERIAL SUMMARY STYLES --- */
+        .material-summary {
+            margin-top: 15px;
+        }
+
+        .material-result {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .material-label {
+            font-size: 14px;
+            color: var(--light-text-color);
+            margin-right: 10px;
+        }
+
+        .material-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--success-color);
+            background-color: rgba(39, 174, 96, 0.1);
+            padding: 4px 12px;
+            border-radius: 15px;
+            border: 1px solid var(--success-color);
+        }
+
+        .material-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .feature-tag {
+            font-size: 12px;
+            color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .clickable-material {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .clickable-material:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0, 90, 158, 0.15);
+        }
+
+        /* --- MATERIAL MODAL STYLES --- */
+        .material-modal {
+            max-width: 1000px;
+            max-height: 90vh;
+        }
+
+        .material-modal-content {
+            max-height: calc(90vh - 100px);
+            overflow-y: auto;
+        }
+
+        .material-analysis-section {
+            margin-bottom: 30px;
+        }
+
+        .material-analysis-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .material-analysis-section p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        .material-images-section {
+            margin-bottom: 30px;
+        }
+
+        .material-image-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .material-image-item {
+            text-align: center;
+        }
+
+        .material-image-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .image-caption {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .image-description {
+            font-size: 13px;
+            color: var(--light-text-color);
+            line-height: 1.4;
+        }
+
+        .analysis-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .analysis-item {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .analysis-item h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .analysis-item ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .analysis-item li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .conclusion-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .conclusion-label {
+            font-size: 14px;
+            color: var(--light-text-color);
+            margin-right: 10px;
+            min-width: 80px;
+        }
+
+        .conclusion-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--success-color);
+            background-color: rgba(39, 174, 96, 0.1);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid var(--success-color);
+        }
+
+        /* --- RESPONSIVE DESIGN FOR MOBILE --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 15px auto;
+                padding: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-title h1 {
+                font-size: 22px;
+            }
+            
+            .header-title p {
+                font-size: 14px;
+            }
+            
+            .header-info {
+                text-align: left;
+                font-size: 12px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .main-result {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .overview-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .analysis-card.wide {
+                grid-column: span 1;
+            }
+            
+            .texture-image-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .material-image-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                padding: 20px;
+                max-width: calc(100vw - 20px);
+                max-height: calc(100vh - 20px);
+            }
+            
+            .modal-chart-container {
+                width: 100%;
+                height: 300px;
+            }
+            
+            .material-modal {
+                max-width: calc(100vw - 20px);
+            }
+            
+            .material-modal-content {
+                max-height: calc(100vh - 120px);
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            .analysis-card h3 {
+                font-size: 16px;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            .color-card-overlay {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .color-card-frame {
+                padding: 6px;
+            }
+            
+            .color-card-image {
+                width: 6%;
+                height: 6%;
+            }
+            
+            .color-card-label {
+                font-size: 11px;
+                padding: 1px 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header-title h1 {
+                font-size: 20px;
+            }
+            
+            .info-grid {
+                padding: 10px;
+            }
+            
+            .analysis-card {
+                padding: 15px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .color-card-overlay {
+                top: 8px;
+                right: 8px;
+            }
+            
+            .color-card-frame {
+                padding: 5px;
+            }
+            
+            .color-card-image {
+                width: 6%;
+                height: 6%;
+            }
+            
+            .color-card-label {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+
+        /* 在CSS中添加可点击样式 */
+        .clickable-color-number {
+            color: var(--primary-color);
+            text-decoration: underline dotted;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .clickable-color-number:hover {
+            color: var(--secondary-color);
+            text-decoration: underline solid;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="header">
+            <div class="header-title">
+                <h1>智能纱线识色分析报告</h1>
+                <p>Intelligent Yarn Color Recognition Analysis Report</p>
+            </div>
+            <div class="header-info">
+                <strong>报告编号:</strong> YCA-20250726-001<br>
+                <strong>检测时间:</strong> 2025-07-26 14:01:29
+            </div>
+        </header>
+
+        <section class="section">
+            <h2 class="section-title">
+                <span>样品基本信息</span>
+                <svg id="edit-btn" onclick="toggleEditMode()" class="edit-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" title="编辑">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                </svg>
+            </h2>
+            <div id="info-grid-editable" class="info-grid">
+                <div class="info-item">
+                    <span class="label">目标色号</span>
+                    <div class="value-container">
+                        <span class="value-text clickable-color-number" onclick="window.location.href='example1.html'" title="点击访问色号详情">三山-L184</span>
+                        <input type="text" class="value-input">
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="label">厂商</span>
+                    <div class="value-container">
+                        <span class="value-text">华孚时尚股份有限公司</span>
+                        <input type="text" class="value-input">
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="label">
+                        <span class="explainable">纱线支数<span class="explanation-icon">?</span>
+                            <div class="explanation-box">
+                                <strong>纱线支数 (Yarn Count):</strong> 是衡量纱线粗细程度的核心指标。英制支数(s)定义为：在公定回潮率下，一磅重的纱线有多少个840码的长度，即为多少支。支数越高，纱线越细。
+                            </div>
+                        </span>
+                    </span>
+                    <div class="value-container">
+                        <span class="value-text">32s (JC 32S)</span>
+                        <input type="text" class="value-input">
+                    </div>
+                </div>
+                 <div class="info-item">
+                    <span class="label">材质</span>
+                    <div class="value-container">
+                        <span class="value-text">羊毛 (Wool)</span>
+                        <input type="text" class="value-input">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+             <h2 class="section-title"><span>核心检测结果</span></h2>
+            <div class="main-result">
+                <div class="yarn-image-container">
+                    <img src="1.png" alt="纱线样品图像">
+                    <div class="color-card-overlay">
+                        <div class="color-card-frame">
+                            <img src="4.png" alt="标准色卡 L184" class="color-card-image">
+                            <div class="color-card-label">L184</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="overview-card">
+                    <h3 class="section-title-small">核心指标总览</h3>
+                    <div class="overview-grid">
+                        <div class="overview-item">
+                            <div class="label">
+                                <span class="explainable">颜色匹配 (vs L184)<span class="explanation-icon">?</span>
+                                    <div class="explanation-box">
+                                        <strong>颜色匹配 (Color Match):</strong> 基于总色差(ΔE*ab)的评判结果。通常ΔE*ab < 1.0被认为是优秀的匹配，人眼几乎无法分辨差异。
+                                    </div>
+                                </span>
+                            </div>
+                            <div class="value status-pass">匹配通过</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="label">
+                                <span class="explainable">材质判定<span class="explanation-icon">?</span>
+                                    <div class="explanation-box">
+                                        <strong>材质判定 (Material Identification):</strong> 基于三维重构的微观形态分析结果。通过识别纤维表面的独特特征（如毛鳞片、沟槽等）来确定其材质成分。
+                                    </div>
+                                </span>
+                            </div>
+                            <div class="value">羊毛纤维</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title"><span>详细分析数据</span></h2>
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zM10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg>
+                        颜色量化数据
+                    </h3>
+                    <table class="data-table">
+                        <tr>
+                            <th>指标</th>
+                            <th>数值</th>
+                            <th>评估</th>
+                        </tr>
+                        <tr>
+                            <td><strong class="explainable">总色差 (ΔE*ab)<span class="explanation-icon">?</span><div class="explanation-box"><strong>总色差 (ΔE*ab):</strong> 在CIE L*a*b*颜色空间中，两个颜色点之间的几何距离。它是评定颜色差异大小的国际标准。ΔE*ab < 1.0，人眼几乎无法察觉；1-2，勉强可分辨；>3，有明显色差。</div></strong></td>
+                            <td><strong>0.85</strong></td>
+                            <td>优秀，无视觉差异</td>
+                        </tr>
+                        <tr>
+                            <td><span class="explainable">光谱相似度<span class="explanation-icon">?</span><div class="explanation-box"><strong>光谱相似度 (Spectral Similarity):</strong> 对比样品与标样的光谱反射率曲线的形状相似程度。高相似度意味着在不同光源下颜色都会保持一致，能有效避免"同色异谱"现象。</div></span></td>
+                            <td>99.2%</td>
+                            <td><span class="explainable">同色异谱<span class="explanation-icon">?</span><div class="explanation-box"><strong>同色异谱 (Metamerism):</strong> 指两个颜色在某一种光源下看起来相同，但在另一种光源下却出现明显色差的现象。这是由它们的光谱反射率曲线不同造成的。</div></span>风险低</td>
+                        </tr>
+                        <tr>
+                            <td>颜色标准差</td>
+                            <td>0.31</td>
+                            <td>颜色均匀性高</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="analysis-card">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M0 0h1v15h15v1H0V0Zm14.854 3.146a.5.5 0 0 1 .146.354v10a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.354-.146L.146 3.5a.5.5 0 0 1 .354-.854h13a.5.5 0 0 1 .354.5Z"/></svg>
+                        颜色空间参数
+                    </h3>
+                    <p class="description" style="font-size: 14px;">各颜色空间下的测量值，用于数据存档与跨系统色彩传递。</p>
+                    <table class="data-table">
+                        <tr><th>颜色空间</th><th>参数值</th></tr>
+                        <tr>
+                            <td><strong class="explainable">CIE L*a*b*<span class="explanation-icon">?</span><div class="explanation-box"><strong>CIE L*a*b*:</strong> 国际照明委员会(CIE)制定的一种均匀颜色空间。L*代表明度(0-100)，a*代表红绿度(正为红，负为绿)，b*代表黄蓝度(正为黄，负为蓝)。它是目前工业界色彩管理最核心、最精确的系统。</div></strong></td>
+                            <td>(78.52, -1.25, 15.60)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="explainable">XYZ 三刺激值<span class="explanation-icon">?</span><div class="explanation-box"><strong>XYZ 三刺激值 (Tristimulus Values):</strong> 描述人眼对颜色的感知基础模型，是一切颜色空间计算的源头数据，但本身不直观。</div></span></td>
+                            <td>(54.1, 56.3, 35.8)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="explainable">sRGB<span class="explanation-icon">?</span><div class="explanation-box"><strong>sRGB:</strong> 广泛用于显示器、打印机和互联网的标准RGB颜色空间。它将物理颜色值转换为设备能显示的数字(0-255)，方便在屏幕上预览。</div></span></td>
+                            <td>(195, 201, 180)</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="analysis-card">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M0 11.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-1.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 1-.5-.5zm12 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-1.5a.5.5 0 0 0-.5.5v1.5a.5.5 0 0 1-1 0v-2zM3.5 1a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 0-.5.5V6a.5.5 0 0 1-1 0V4.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 0 .5-.5V1.5a.5.5 0 0 1 .5-.5zm9 0a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 0 .5.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 0-.5.5V6a.5.5 0 0 1-1 0V4.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 1 0-1h1a.5.5 0 0 0 .5-.5V1.5a.5.5 0 0 1 .5-.5z"/></svg>
+                        光谱反射率曲线
+                    </h3>
+                    <div id="spectral-chart-container" class="chart-container clickable-chart" onclick="openChartModal()" style="cursor: pointer;" title="点击放大查看"></div>
+                </div>
+
+                <div class="analysis-card clickable-material" onclick="openMaterialModal()" style="cursor: pointer;" title="点击查看详细分析">
+                    <h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M10.065.866a1.18 1.18 0 0 0-1.018.349L3.435 6.554a1.648 1.648 0 0 0-.48.917l-.887 4.346a.5.5 0 0 0 .596.596l4.346-.887a1.648 1.648 0 0 0 .917-.48l5.612-5.612a1.18 1.18 0 0 0 .349-1.018l-.53-2.652L10.065.866zM13.53 4.887L11.113 2.47l.265-1.326a.18.18 0 0 1 .277-.142l2.475 2.475a.18.18 0 0 1-.142.277l-1.326.265zM2.805 13.195l.775-3.797 3.797.775-3.797-.775z"/></svg>
+                        三维微观结构与材质判定
+                        <span class="explanation-icon">?</span>
+                            <div class="explanation-box">
+                                <strong>三维微观结构重构技术：</strong> 采用多光源立体成像系统，结合深度学习算法，能够精确重构纱线表面的三维几何形态。通过分析纤维表面的微观特征（如毛鳞片、沟槽、纹理等），实现材质的精准识别和工艺判定。
+                            </div>
+                    </h3>
+                    
+                    <div class="texture-image-grid">
+                        <div class="texture-image-container">
+                            <img src="2.png" alt="表面法线图" title="表面法线图 (Surface Normal Map)">
+                        </div>
+                         <div class="texture-image-container">
+                            <img src="3.png" alt="三维重构纹理图" title="三维重构纹理图 (3D Reconstructed Texture)">
+                        </div>
+                    </div>
+                    <div class="material-summary">
+                        <div class="material-result">
+                            <span class="material-label">判定结果：</span>
+                            <span class="material-value">羊毛纤维</span>
+                        </div>
+                        <div class="material-features">
+                            <span class="feature-tag">毛鳞片结构</span>
+                            <span class="feature-tag">自然卷曲</span>
+                            <span class="feature-tag">毛羽特征</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>智能纱线品质控制系统 · AI检测报告</p>
+            <p>本报告由系统自动生成，检测结果仅供参考，最终解释权归质检部门所有。</p>
+        </footer>
+    </div>
+
+    <!-- 图表模态框 -->
+    <div id="chartModal" class="modal-overlay" onclick="closeChartModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">光谱反射率曲线 - 详细视图</h2>
+                <button class="modal-close" onclick="closeChartModal()">&times;</button>
+            </div>
+            <div id="modal-chart-container" class="modal-chart-container"></div>
+        </div>
+    </div>
+
+    <!-- 材质分析模态框 -->
+    <div id="materialModal" class="modal-overlay" onclick="closeMaterialModal()">
+        <div class="modal-content material-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 class="modal-title">三维微观结构与材质判定 - 详细分析</h2>
+                <button class="modal-close" onclick="closeMaterialModal()">&times;</button>
+            </div>
+            <div class="material-modal-content">
+                <div class="material-analysis-section">
+                    <h3>检测原理</h3>
+                    <p>通过**多角度光照**与**AI算法**重构纱线三维微观几何形态，是精准识别材质和工艺的核心依据。系统采用多光源立体成像技术，结合深度学习算法，能够精确识别纤维表面的微观特征。</p>
+                </div>
+                
+                <div class="material-images-section">
+                    <h3>三维重构图像</h3>
+                    <div class="material-image-grid">
+                        <div class="material-image-item">
+                            <img src="2.png" alt="表面法线图" title="表面法线图 (Surface Normal Map)">
+                            <div class="image-caption">表面法线图</div>
+                            <div class="image-description">显示纤维表面的法线方向分布，反映微观几何形态</div>
+                        </div>
+                        <div class="material-image-item">
+                            <img src="3.png" alt="三维重构纹理图" title="三维重构纹理图 (3D Reconstructed Texture)">
+                            <div class="image-caption">三维重构纹理图</div>
+                            <div class="image-description">基于多角度光照重构的三维表面纹理</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="material-analysis-section">
+                    <h3>材质判定分析</h3>
+                    <div class="analysis-details">
+                        <div class="analysis-item">
+                            <h4>核心特征识别</h4>
+                            <ul>
+                                <li><strong>毛鳞片结构：</strong>纤维表面覆盖有清晰的毛鳞片结构，这是动物毛发纤维（如羊毛、羊绒）独有的表层特征</li>
+                                <li><strong>自然卷曲：</strong>纤维呈现自然的卷曲形态，符合羊毛纤维的物理特性</li>
+                                <li><strong>毛羽特征：</strong>纱体周围存在大量向外伸出的短纤维，形成明显的"毛羽"现象</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="analysis-item">
+                            <h4>表面法线分析</h4>
+                            <p>表面法线图进一步证实了这种不规则、多向的微观表面特征，与羊毛纤维的典型结构高度吻合。</p>
+                        </div>
+
+                        <div class="analysis-item">
+                            <h4>判定结论</h4>
+                            <div class="conclusion-box">
+                                <span class="conclusion-label">材质类型：</span>
+                                <span class="conclusion-value">羊毛纤维 (Wool Fiber)</span>
+                            </div>
+                            <div class="conclusion-box">
+                                <span class="conclusion-label">置信度：</span>
+                                <span class="conclusion-value">98.5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SCRIPT FOR EDITABLE INFO SECTION ---
+        let isEditMode = false;
+        const editBtn = document.getElementById('edit-btn');
+        const infoGrid = document.getElementById('info-grid-editable');
+        const editIconSVG = `<path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/><path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>`;
+        const saveIconSVG = `<path d="M2.5 8.5a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-3z"/><path d="M1 14a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zM3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5z"/>`;
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const valueContainers = infoGrid.querySelectorAll('.value-container');
+            if (isEditMode) {
+                editBtn.innerHTML = saveIconSVG;
+                editBtn.setAttribute('title', '保存');
+                valueContainers.forEach(container => {
+                    const textElement = container.querySelector('.value-text');
+                    const inputElement = container.querySelector('.value-input');
+                    textElement.style.display = 'none';
+                    inputElement.style.display = 'block';
+                    inputElement.value = textElement.textContent.trim();
+                });
+            } else {
+                editBtn.innerHTML = editIconSVG;
+                editBtn.setAttribute('title', '编辑');
+                valueContainers.forEach(container => {
+                    const textElement = container.querySelector('.value-text');
+                    const inputElement = container.querySelector('.value-input');
+                    textElement.textContent = inputElement.value;
+                    inputElement.style.display = 'none';
+                    textElement.style.display = 'block';
+                });
+            }
+        }
+
+        // --- SCRIPT FOR EXPLANATION TOOLTIP ---
+        document.addEventListener('click', function(e) {
+            // Find the closest parent that is an .explainable element
+            const explainableTarget = e.target.closest('.explainable');
+
+            // Get all visible explanation boxes
+            const visibleBoxes = document.querySelectorAll('.explanation-box.visible');
+            
+            visibleBoxes.forEach(box => {
+                // Hide the box if the click was outside of its parent .explainable container
+                if (!box.parentElement.contains(explainableTarget)) {
+                    box.classList.remove('visible');
+                }
+            });
+
+            // If an .explainable element was clicked, toggle its box
+            if (explainableTarget) {
+                const box = explainableTarget.querySelector('.explanation-box');
+                if (box) {
+                    box.classList.toggle('visible');
+                }
+            }
+        });
+
+        // --- SCRIPT FOR CHART MODAL ---
+        let modalChart = null;
+
+        function openChartModal() {
+            const modal = document.getElementById('chartModal');
+            const modalContainer = document.getElementById('modal-chart-container');
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // 重新初始化图表到模态框中
+            if (modalChart) {
+                modalChart.dispose();
+            }
+            
+            modalChart = echarts.init(modalContainer);
+            
+            // 使用与原始图表相同的数据和配置
+            const wavelength = [400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700];
+            const standardReflectance = [28.0, 31.5, 33.0, 34.2, 35.8, 38.0, 41.2, 45.1, 49.8, 55.1, 60.8, 66.5, 71.8, 76.2, 79.7, 82.2, 83.8, 84.7, 85.0, 85.1, 84.9, 85.2, 85.4, 85.5, 85.3, 85.0, 84.8, 84.9, 85.0, 85.1, 85.0];
+            const sampleReflectance = [27.5, 31.9, 32.5, 34.8, 35.2, 38.5, 40.8, 45.5, 49.2, 55.6, 60.3, 66.9, 71.2, 76.8, 79.2, 82.5, 83.4, 85.1, 84.5, 85.5, 84.4, 85.7, 84.9, 85.9, 84.8, 85.4, 84.3, 85.2, 84.5, 85.5, 84.6];
+            
+            const modalOption = {
+                title: {
+                    text: '光谱反射率曲线详细分析',
+                    subtext: 'Spectral Reflectance Curve - Detailed Analysis',
+                    left: 'center',
+                    textStyle: { fontSize: 20, fontWeight: 'bold' },
+                    subtextStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        let tooltipText = `波长 (Wavelength): ${params[0].name} nm<br/>`;
+                        params.forEach(param => {
+                            tooltipText += `${param.marker} ${param.seriesName}: ${param.value.toFixed(2)}%<br/>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                legend: {
+                    top: 'bottom',
+                    data: ['标准色 (Standard L184)', '样品 (Sample)']
+                },
+                grid: { left: '4%', right: '4%', bottom: '12%', containLabel: true },
+                toolbox: {
+                    feature: {
+                        dataZoom: { yAxisIndex: 'none' },
+                        restore: {},
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: wavelength,
+                    name: '波长 (nm)',
+                    nameLocation: 'middle',
+                    nameGap: 30
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '反射率 (%)',
+                    min: 0,
+                    max: 100
+                },
+                dataZoom: [{ type: 'inside' }, { type: 'slider', bottom: 45 }],
+                series: [
+                    {
+                        name: '标准色 (Standard L184)',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { color: '#333333', width: 2.5 },
+                        data: standardReflectance
+                    },
+                    {
+                        name: '样品 (Sample)',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { type: 'dashed', color: '#3498db', width: 2.5 },
+                        itemStyle: { color: '#3498db' },
+                        data: sampleReflectance
+                    }
+                ]
+            };
+            
+            modalChart.setOption(modalOption);
+            
+            // 监听ESC键关闭模态框
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeChartModal();
+                }
+            });
+        }
+
+        function closeChartModal() {
+            const modal = document.getElementById('chartModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            if (modalChart) {
+                modalChart.dispose();
+                modalChart = null;
+            }
+        }
+
+        // --- SCRIPT FOR MATERIAL MODAL ---
+        function openMaterialModal() {
+            const modal = document.getElementById('materialModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // 监听ESC键关闭模态框
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeMaterialModal();
+                }
+            });
+        }
+
+        function closeMaterialModal() {
+            const modal = document.getElementById('materialModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // --- SCRIPT FOR ECHARTS ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const wavelength = [400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500, 510, 520, 530, 540, 550, 560, 570, 580, 590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700];
+            const standardReflectance = [28.0, 31.5, 33.0, 34.2, 35.8, 38.0, 41.2, 45.1, 49.8, 55.1, 60.8, 66.5, 71.8, 76.2, 79.7, 82.2, 83.8, 84.7, 85.0, 85.1, 84.9, 85.2, 85.4, 85.5, 85.3, 85.0, 84.8, 84.9, 85.0, 85.1, 85.0];
+            const sampleReflectance = [27.5, 31.9, 32.5, 34.8, 35.2, 38.5, 40.8, 45.5, 49.2, 55.6, 60.3, 66.9, 71.2, 76.8, 79.2, 82.5, 83.4, 85.1, 84.5, 85.5, 84.4, 85.7, 84.9, 85.9, 84.8, 85.4, 84.3, 85.2, 84.5, 85.5, 84.6];
+            
+            var myChart = echarts.init(document.getElementById('spectral-chart-container'));
+            var option = {
+                title: {
+                    text: '样品 vs. 标准色 | 光谱反射率曲线',
+                    subtext: 'Spectral Reflectance Curve: Sample vs. Standard',
+                    left: 'center',
+                    textStyle: { fontSize: 16, fontWeight: 'normal' }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        let tooltipText = `波长 (Wavelength): ${params[0].name} nm<br/>`;
+                        params.forEach(param => {
+                            tooltipText += `${param.marker} ${param.seriesName}: ${param.value.toFixed(2)}%<br/>`;
+                        });
+                        return tooltipText;
+                    }
+                },
+                legend: {
+                    top: 'bottom',
+                    data: ['标准色 (Standard L184)', '样品 (Sample)']
+                },
+                grid: { left: '4%', right: '4%', bottom: '12%', containLabel: true },
+                toolbox: {
+                    feature: {
+                        dataZoom: { yAxisIndex: 'none' },
+                        restore: {},
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: wavelength,
+                    name: '波长 (nm)',
+                    nameLocation: 'middle',
+                    nameGap: 30
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '反射率 (%)',
+                    min: 0,
+                    max: 100
+                },
+                dataZoom: [{ type: 'inside' }, { type: 'slider', bottom: 45 }],
+                series: [
+                    {
+                        name: '标准色 (Standard L184)',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { color: '#333333', width: 2.5 },
+                        data: standardReflectance
+                    },
+                    {
+                        name: '样品 (Sample)',
+                        type: 'line',
+                        smooth: true,
+                        showSymbol: false,
+                        lineStyle: { type: 'dashed', color: '#3498db', width: 2.5 },
+                        itemStyle: { color: '#3498db' },
+                        data: sampleReflectance
+                    }
+                ]
+            };
+            myChart.setOption(option);
+            
+            window.addEventListener('resize', () => myChart.resize());
+        });
+    </script>
+</body>
+</html>
