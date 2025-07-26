@@ -241,21 +241,64 @@
             .history-item { grid-template-columns: 1fr; }
             .history-item-color-swatch { grid-row: 1; width: 50px; height: 50px; margin-bottom: 10px; }
         }
+        .clear-cache-dot {
+            display: none;
+            width: 12px;
+            height: 12px;
+            background: #e74c3c;
+            border-radius: 50%;
+            position: relative;
+            margin-left: 8px;
+            top: -2px;
+            box-shadow: 0 0 0 2px #fff;
+        }
+        .clear-cache-dot.show {
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
 
     <div class="page-container">
         <header>
-            <div class="logo-container">拾色系统</div>
+            <div class="logo-container">拾色笔管理系统</div>
             <h1 class="page-title">智能纱线拾色分析系统</h1>
         </header>
 
         <main>
+            
+
             <section class="section-card">
                 <h2 class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                    识别记录
+                </h2>
+                <div class="history-list">
+                    <a href="example1.html" class="history-item history-item-link">
+                        <div class="history-item-color-swatch"></div>
+                        <div class="history-item-details">
+                            <div class="history-item-row"><span class="history-item-label">目标色号:</span><span class="history-item-value">三山-L184</span></div>
+                            <div class="history-item-row"><span class="history-item-label">厂商:</span><span class="history-item-value">华孚时尚股份有限公司</span></div>
+                            <div class="history-item-row"><span class="history-item-label">纱线支数:</span><span class="history-item-value">32s (JC 32S)</span></div>
+                            <div class="history-item-row"><span class="history-item-label">材质:</span><span class="history-item-value">羊毛 (Wool)</span></div>
+                        </div>
+                    </a>
+                    <a href="example2.html" class="history-item history-item-link">
+                        <div class="history-item-color-swatch" style="background-color: #5d6d7e;"></div>
+                        <div class="history-item-details">
+                            <div class="history-item-row"><span class="history-item-label">目标色号:</span><span class="history-item-value">潘通-19-4028</span></div>
+                            <div class="history-item-row"><span class="history-item-label">厂商:</span><span class="history-item-value">天虹纺织集团</span></div>
+                            <div class="history-item-row"><span class="history-item-label">纱线支数:</span><span class="history-item-value">40s</span></div>
+                            <div class="history-item-row"><span class="history-item-label">材质:</span><span class="history-item-value">棉 (Cotton)</span></div>
+                        </div>
+                    </a>
+                </div>
+            </section>
+            <section class="section-card">
+                <h2 class="section-title" id="deviceStatusTitle" style="cursor:pointer;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     设备状态
+                    <span class="clear-cache-dot" id="clearCacheDot"></span>
                 </h2>
                 <div class="pens-grid">
                     <div class="pen-card" data-pen-id="pen-1">
@@ -269,9 +312,9 @@
                                 <div class="pen-status"><span class="status-dot online"></span><span>在线</span></div>
                             </div>
                             <div class="pen-tags-container">
-                                <span class="pen-tag">华孚时尚</span>
-                                <span class="pen-tag">精梳棉</span>
-                                <span class="pen-tag">32S</span>
+                                <span class="pen-tag">鸿源</span>
+                                <span class="pen-tag">鼎艺</span>
+                                <span class="pen-tag">光乾</span>
                             </div>
                         </div>
                         <div class="pen-footer">
@@ -297,10 +340,10 @@
                                 <div class="pen-status"><span class="status-dot offline"></span><span>离线</span></div>
                             </div>
                             <div class="pen-tags-container">
-                                <span class="pen-tag">通用</span>
-                                <span class="pen-tag">测试专用</span>
-                                <span class="pen-tag">羊毛</span>
-                                <span class="pen-tag">在产</span>
+                                <span class="pen-tag">东鸿针纺</span>
+                                <span class="pen-tag">瑞玛纺织</span>
+                                <span class="pen-tag">今日风</span>
+                                <span class="pen-tag">瑞马</span>
                             </div>
                         </div>
                         <div class="pen-footer">
@@ -314,25 +357,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <section class="section-card">
-                <h2 class="section-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                    识别记录
-                </h2>
-                <div class="history-list">
-                    <a href="example1.html" class="history-item history-item-link">
-                        <div class="history-item-color-swatch"></div>
-                        <div class="history-item-details">
-                            <div class="history-item-row"><span class="history-item-label">目标色号:</span><span class="history-item-value">三山-L184</span></div>
-                            <div class="history-item-row"><span class="history-item-label">厂商:</span><span class="history-item-value">华孚时尚股份有限公司</span></div>
-                            <div class="history-item-row"><span class="history-item-label">纱线支数:</span><span class="history-item-value">32s (JC 32S)</span></div>
-                            <div class="history-item-row"><span class="history-item-label">材质:</span><span class="history-item-value">羊毛 (Wool)</span></div>
-                        </div>
-                    </a>
-                    <div class="history-item"><div class="history-item-color-swatch" style="background-color: #5d6d7e;"></div><div class="history-item-details"><div class="history-item-row"><span class="history-item-label">目标色号:</span><span class="history-item-value">潘通-19-4028</span></div><div class="history-item-row"><span class="history-item-label">厂商:</span><span class="history-item-value">天虹纺织集团</span></div><div class="history-item-row"><span class="history-item-label">纱线支数:</span><span class="history-item-value">40s</span></div><div class="history-item-row"><span class="history-item-label">材质:</span><span class="history-item-value">棉 (Cotton)</span></div></div></div>
                 </div>
             </section>
         </main>
@@ -377,7 +401,7 @@
         // --- 标签编辑器功能 ---
         const tagEditorModal=document.getElementById("tagEditorModal"),currentTagsList=document.getElementById("currentTagsList"),addTagInput=document.getElementById("addTagInput"),commonTagsList=document.getElementById("commonTagsList");
         let currentEditingPenId=null;
-        const commonTags=["华孚时尚","天虹纺织","精梳棉","普梳棉","32S","40S","在产","待检","羊毛","纯棉"];
+        const commonTags=["鸿源","鼎艺","光乾","东鸿针纺","瑞玛纺织","今日风","瑞马"];
         
         function populateCommonTags(){commonTagsList.innerHTML="",commonTags.forEach(t=>{const e=createModalTag(t,!1);e.onclick=()=>addTagToCurrentList(t),commonTagsList.appendChild(e)})}
         function createModalTag(t,e=!0){const n=document.createElement("span");return n.className="modal-tag",n.textContent=t,n.dataset.tag=t,e&&(n.innerHTML+='<button class="remove-tag-btn" onclick="this.parentElement.remove()">&times;</button>'),n}
@@ -386,11 +410,51 @@
         addTagInput.onkeydown=t=>{"Enter"===t.key&&(t.preventDefault(),addTagFromInput())};
         function openTagEditorModal(t){currentEditingPenId=t;const e=document.querySelector(`.pen-card[data-pen-id='${t}']`);currentTagsList.innerHTML="",e&&e.querySelectorAll(".pen-tag").forEach(t=>{addTagToCurrentList(t.textContent)}),tagEditorModal.style.display="flex"}
         function closeTagEditorModal(){tagEditorModal.style.display="none",currentEditingPenId=null}
-        function saveTags(){if(currentEditingPenId){const t=document.querySelector(`.pen-card[data-pen-id='${currentEditingPenId}']`),e=t.querySelector(".pen-tags-container");e.innerHTML="";const n=Array.from(currentTagsList.querySelectorAll(".modal-tag")).map(t=>t.dataset.tag);n.forEach(t=>{const n=document.createElement("span");n.className="pen-tag",n.textContent=t,e.appendChild(n)})}closeTagEditorModal()}
+        function saveTags(){if(currentEditingPenId){const t=document.querySelector(`.pen-card[data-pen-id='${currentEditingPenId}']`),e=t.querySelector(".pen-tags-container");e.innerHTML="";const n=Array.from(currentTagsList.querySelectorAll(".modal-tag")).map(t=>t.dataset.tag);n.forEach(t=>{const n=document.createElement("span");n.className="pen-tag",n.textContent=t,e.appendChild(n)});
+            // 保存到localStorage
+            let penTags = JSON.parse(localStorage.getItem('penTags')||'{}');
+            penTags[currentEditingPenId] = n;
+            localStorage.setItem('penTags', JSON.stringify(penTags));
+        }
+        closeTagEditorModal();
+    }
         tagEditorModal.addEventListener("click",t=>{t.target===tagEditorModal&&closeTagEditorModal()});
         
         // 初始化
         populateCommonTags();
+        // 页面加载时渲染标签
+        function renderPenTagsFromCache(){
+            let penTags = JSON.parse(localStorage.getItem('penTags')||'{}');
+            document.querySelectorAll('.pen-card').forEach(card=>{
+                const penId = card.getAttribute('data-pen-id');
+                if(penTags[penId]){
+                    const tagBox = card.querySelector('.pen-tags-container');
+                    tagBox.innerHTML = '';
+                    penTags[penId].forEach(tag=>{
+                        const span = document.createElement('span');
+                        span.className = 'pen-tag';
+                        span.textContent = tag;
+                        tagBox.appendChild(span);
+                    });
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+            renderPenTagsFromCache();
+        });
+        // 红点逻辑
+        const clearCacheDot = document.getElementById('clearCacheDot');
+        const deviceStatusTitle = document.getElementById('deviceStatusTitle');
+        deviceStatusTitle.addEventListener('click', function(){
+            clearCacheDot.classList.add('show');
+        });
+        clearCacheDot.addEventListener('click', function(e){
+            e.stopPropagation();
+            localStorage.removeItem('penTags');
+            clearCacheDot.classList.remove('show');
+            // 还原页面标签为初始状态
+            location.reload();
+        });
     </script>
 </body>
 </html>
